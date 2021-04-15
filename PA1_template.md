@@ -7,29 +7,47 @@ output:
 
 
 Loading and preprocessing the data
-```{R load, results="hide"}
+
+```r
 activity <- read.csv("activity.csv")
 ```
 
 Convert the date column from character to dates 
-```{R makedate}
+
+```r
 activity$date <- as.Date(activity$date, "%Y-%m-%d")
 ```
 
 Calculate the total number of steps taken per day and plot bar graph
-```{R dailysteps}
+
+```r
 daysteps <- with(activity, tapply(steps, date, sum))
 barplot(daysteps, ylab = "Number of Steps", xlab = "Day", main = "Total number of steps taken each day")
 ```
 
+![plot of chunk dailysteps](figure/dailysteps-1.png)
+
 Calculate the mean and median of the total number of steps taken per day
-```{R mean_median}
+
+```r
 mean(daysteps, na.rm = TRUE)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(daysteps, na.rm = TRUE)
 ```
 
+```
+## [1] 10765
+```
+
 Plot a time series plot of the 5-minute interval and the average number of steps taken, averaged across all days
-```{R plottimeseries}
+
+```r
 agg <- with(activity, 
              aggregate(list("avg.steps"=steps), 
                        list("interval"=interval), 
@@ -38,55 +56,97 @@ plot(agg$interval, agg$avg.steps, type = "l",
      xlab = "5-minute Interval", ylab = "Average Number of Steps")
 ```
 
+![plot of chunk plottimeseries](figure/plottimeseries-1.png)
+
 Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
-```{R findmax}
+
+```r
 agg[which.max(agg$avg.steps),1]
 ```
 
+```
+## [1] 835
+```
+
 Total number of missing values in the dataset
-```{R missing}
+
+```r
 sum(is.na(activity))
 ```
 
+```
+## [1] 2304
+```
+
 Create a new dataset from the original dataset with the missing data imputed (using means of the interval).
-```{R inpute}
+
+```r
 activity.i <- activity
 activity.i$steps.i <- ave(activity.i$steps, activity.i$interval, FUN=function(x)
         ifelse(is.na(x), mean(x, na.rm = T), x))
 ```
 
 Calculate the total number of steps (with imputed data) taken per day and plot bar graph
-```{R dailysteps.imputed}
+
+```r
 daysteps.i <- with(activity.i, tapply(steps.i, date, sum))
 barplot(daysteps.i, ylab = "Number of Steps", xlab = "Day", main = "Total number of steps taken each day (data imputation)")
 ```
 
+![plot of chunk dailysteps.imputed](figure/dailysteps.imputed-1.png)
+
 Calculate the mean and median of the total number of steps taken per day
-```{R mean_median.imputed}
+
+```r
 mean(daysteps.i, na.rm = TRUE)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(daysteps.i, na.rm = TRUE)
 ```
 
+```
+## [1] 10766.19
+```
+
 What is the impact of imputing missing data on the estimates of the total daily number of steps?
-```{R impact}
+
+```r
 meansteps <- mean(daysteps, na.rm = TRUE)
 mediansteps <- median(daysteps, na.rm = TRUE)
 meansteps.i <- mean(daysteps.i, na.rm = TRUE)
 mediansteps.i <- median(daysteps.i, na.rm = TRUE)
 print(paste("percentage change in the mean of daily steps as a result of imputation = ", (meansteps-meansteps.i)/meansteps*100))
+```
+
+```
+## [1] "percentage change in the mean of daily steps as a result of imputation =  0"
+```
+
+```r
 print(paste("percentage change in the median of daily steps as a result of imputation = ", (mediansteps-mediansteps)/mediansteps*100))
+```
+
+```
+## [1] "percentage change in the median of daily steps as a result of imputation =  0"
 ```
 
 Create a new factor variable in the dataset with two levels – “weekday” and “weekend”
 weekdays(activity.i[,2])
-```{R weekday}
+
+```r
 activity.i$day.week <- with(activity.i, 
                             ifelse(weekdays(date) %in% c("Sunday", "Saturday"),
                                    "weekend", "weekday"))
 ```
 
 Create panel plot containing a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
-```{R dayweek, fig.height = 10, fig.width = 10}
+
+```r
 agg.i.weekday <- with(activity.i[activity.i$day.week == "weekday", ],
                       aggregate(list("avg.steps"=steps),
                                 list("interval"=interval),
@@ -106,3 +166,5 @@ title("Weekends", adj = 0.01, line = -1, font = 1)
 mtext("Number of Steps", side = 2, outer = T, cex = 1.5)
 mtext("Interval", side = 1, outer = T, cex = 1.5)
 ```
+
+![plot of chunk dayweek](figure/dayweek-1.png)
